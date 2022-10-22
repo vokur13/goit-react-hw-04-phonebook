@@ -1,88 +1,53 @@
-import { useState } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import 'css/styles.css';
-import { Searchbar } from 'components/Searchbar';
-import { ImageGalleryHub } from 'components/ImageGalleryHub';
+import { useState, useMemo } from 'react';
+import { Box } from '../components/Box';
+import { ContactForm } from '../components/ContactForm';
+import { Filter } from '../components/Filter';
+import { ContactList } from '../components/ContactList';
+import { nanoid } from 'nanoid';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { initailContacts } from '../utils/initialContacts';
+
+const STORAGE_KEY = 'contacts';
 
 export const App = () => {
-  const initialValue = 1;
+  const [contacts, setContacts] = useLocalStorage(STORAGE_KEY, initailContacts);
+  const [filter, setFilter] = useState('');
 
-  const [page, setPage] = useState(initialValue);
-  const [perPage, setPerPage] = useState(12);
-  const [query, setQuery] = useState('');
-  const [gallery, setGallery] = useState([]);
-  const [total, setTotal] = useState(null);
-  const [totalHits, setTotalHits] = useState(null);
+  function formSubmitHandler({ name, number }) {
+    const checkName = contacts.some(item =>
+      item.name.toLowerCase().trim().includes(name.toLowerCase().trim())
+    );
+    checkName
+      ? alert(`${name} is already in contacts`)
+      : setContacts([{ id: nanoid(), name, number }, ...contacts]);
+  }
 
-  function handleFormSubmit({ query }) {
-    if (!query.trim().toLowerCase()) {
-      return toast.warn('Please let us know your query item');
-    }
-    setPage(initialValue);
-    setPerPage(12);
-    setQuery(query.trim().toLowerCase());
-    setGallery([]);
-    setTotal(null);
-    setTotalHits(null);
+  function onFilterChange([value]) {
+    !value ? setFilter('') : setFilter(value);
+  }
+
+  const filteredContacts = useMemo(() => {
+    return contacts.filter(item => {
+      console.log('item', item);
+      return item.name
+        .toLowerCase()
+        .trim()
+        .includes(filter.toLowerCase().trim());
+    });
+  }, [contacts, filter]);
+
+  function deleteItem(itemID) {
+    setContacts(contacts.filter(item => item.id !== itemID));
   }
 
   return (
-    <>
-      <Searchbar onFormSubmit={handleFormSubmit} />
-      <ImageGalleryHub
-        page={page}
-        perPage={perPage}
-        query={query}
-        gallery={gallery}
-        total={total}
-        totalHits={totalHits}
-      />
-      <ToastContainer position="top-left" autoClose={5000} />
-    </>
+    <Box width={1} p={4} bg="bgBasic" as="main">
+      <h1>Phonebook</h1>
+      <ContactForm onFormSubmit={formSubmitHandler} />
+
+      <h2>Contacts</h2>
+      <Filter onChange={onFilterChange} />
+      <ContactList onDelete={deleteItem} list={filteredContacts} />
+    </Box>
   );
 };
-
-// export class protoApp extends Component {
-//   static defaultProps = {
-//     initialValue: 1,
-//   };
-//   state = {
-//     page: this.props.initialValue,
-//     query: '',
-//     gallery: [],
-//     total: null,
-//     totalHits: null,
-//   };
-
-//   handleFormSubmit = ({ query }) => {
-//     const q = query.trim().toLowerCase();
-//     if (q === '') {
-//       return toast.warn('Please let us know your query item');
-//     }
-//     this.setState({
-//       page: this.props.initialValue,
-//       query: q,
-//       gallery: [],
-//       total: null,
-//       totalHits: null,
-//     });
-//   };
-
-//   render() {
-//     const { page, query, gallery, total, totalHits } = this.state;
-//     return (
-//       <>
-//         <Searchbar onSubmit={this.handleFormSubmit} />
-//         <ImageGalleryHub
-//           page={page}
-//           query={query}
-//           gallery={gallery}
-//           total={total}
-//           totalHits={totalHits}
-//         />
-//         <ToastContainer position="top-left" autoClose={5000} />
-//       </>
-//     );
-//   }
-// }
