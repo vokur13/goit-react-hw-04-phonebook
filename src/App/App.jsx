@@ -14,8 +14,8 @@ export const App = () => {
   const [filter, setFilter] = useState('');
 
   function formSubmitHandler({ name, number }) {
-    const checkName = contacts.some(item =>
-      item.name.toLowerCase().trim().includes(name.toLowerCase().trim())
+    const checkName = contacts.some(
+      item => item.name.toLowerCase().trim() === name.toLowerCase().trim()
     );
     checkName
       ? alert(`${name} is already in contacts`)
@@ -28,7 +28,6 @@ export const App = () => {
 
   const filteredContacts = useMemo(() => {
     return contacts.filter(item => {
-      console.log('item', item);
       return item.name
         .toLowerCase()
         .trim()
